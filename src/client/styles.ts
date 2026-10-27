@@ -48,7 +48,9 @@ export const PANEL_CSS = `
 .${ROOT_CLASS} h1{margin:0;font-size:20px;font-weight:500;line-height:28px}
 /* Version chip beside the title, per the repo style contract: 12px/500 in
    label-caption, nudged 6px off the title, tabular figures so "0.1.10" does not
-   jitter the title's width when it rolls over. */
+   jitter the title's width when it rolls over. The mandatory author credit is a
+   second text run in this same span, so it takes all of the above and adds no
+   styling of its own. */
 .${ROOT_CLASS} h1 .version{
   margin-left:6px;font-size:12px;font-weight:500;line-height:1;
   color:var(--dsw-alias-label-caption);

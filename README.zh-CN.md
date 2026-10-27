@@ -3,13 +3,13 @@
 [English](README.md) | **简体中文**
 
 [![License](https://img.shields.io/github/license/icrefin/dsh-notify-push?style=flat-square)](LICENSE)
-[![Release](https://img.shields.io/github/v/release/icrefin/dsh-notify-push?style=flat-square)](https://github.com/icrefin/dsh-notify-push/releases/tag/v0.4.1)
+[![Release](https://img.shields.io/github/v/release/icrefin/dsh-notify-push?style=flat-square)](https://github.com/icrefin/dsh-notify-push/releases/tag/v0.4.3)
 [![CI](https://img.shields.io/github/actions/workflow/status/icrefin/dsh-notify-push/ci.yml?branch=main&style=flat-square)](https://github.com/icrefin/dsh-notify-push/actions/workflows/ci.yml)
 [![Last commit](https://img.shields.io/github/last-commit/icrefin/dsh-notify-push?style=flat-square)](https://github.com/icrefin/dsh-notify-push/commits/main)
 [![Stars](https://img.shields.io/github/stars/icrefin/dsh-notify-push?style=flat-square)](https://github.com/icrefin/dsh-notify-push/stargazers)
 [![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen?style=flat-square)](https://github.com/icrefin/dsh-notify-push/pulls)
 [![Node](https://img.shields.io/badge/node-%3E%3D22.17-339933?style=flat-square&logo=node.js)](https://nodejs.org)
-[![dsh](https://img.shields.io/badge/dsh-0.2.0--rc.2-4B5563?style=flat-square)](https://github.com/deepseek-ai/deepseek-harness)
+[![dsh](https://img.shields.io/badge/dsh-0.2.1--rc.3-4B5563?style=flat-square)](https://github.com/deepseek-ai/deepseek-harness)
 
 这是一个 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness)（dsh）
 插件。每当 agent 结束一轮对话、报错，或者正在等你审批时，它都会把一条
@@ -19,7 +19,7 @@
 因此即使 Harness 标签页已经关闭、笔记本已经合盖，它依然能送到。
 
 ```
-Settings ▸ Notify Push                          v0.4.1
+Settings ▸ Notify Push       v0.4.3 Author: icrefin [icrefinai@gmail.com]
 └── 投递状态、可编辑的配置表单、
     需要订阅的服务器和 topic（原样给出）、
     已启用的触发条件、实时预览、投递日志，
@@ -36,6 +36,7 @@ Settings ▸ Notify Push                          v0.4.1
 标明的是 harness 实际加载的那份构建。这一点很重要：安装一个新包并不会重新
 组合正在运行的 profile——磁盘上的替换在重启前不会生效，而这枚版本标签是
 区分这两种状态最快的方式。
+仓库风格契约要求的作者署名——`Author: icrefin [icrefinai@gmail.com]`——搭在同一枚标签上，位于版本号右侧。
 
 ## 一条通知包含什么
 
@@ -106,12 +107,24 @@ Blue · Green
 写入任何东西之前，先按字段规格校验收到的 patch——被拒绝的 key 永远不会进入
 设置文档，因为该文档比进程活得更久，否则会在每次启动时被重新应用。
 
+### 浏览器半部如何寻址这些路由
+
+上面这些路由是宿主路径，保持绝对形式；浏览器半部则**相对文档**去请求它们
+（`CLIENT_API`，由 `src/protocol.ts` 里的 `clientPath()` 从 `API` 派生）。这不是
+风格选择。Web 客户端可以被挂载在某个路径前缀之下——`dsh-remote-control` 就把
+真实的客户端伺服在 `/s/<sessionId>/` 下——而以 `/` 开头的请求会对着源解析，
+从而逃出这个前缀。随后应答 `/api/…` 的是前缀自己的宿主：经由中继时那是它的
+配对页，一个 `200 text/html` 响应体，`response.json()` 会把它报成
+`Unexpected token '<'`。文档相对路径对着 `document.baseURI` 解析，始终留在页面
+所在的前缀之内，harness 自己的通道也正是这样寻址宿主的。`test/protocol.spec.ts`
+对着一个挂载了 base 的地址解析这两种形式，把这个行为钉住。
+
 ## 安装
 
 ```sh
 pnpm install
 pnpm check                              # 同时 typecheck 前后两半、构建，然后跑 vitest
-pnpm run pack                           # -> dist/dsh-notify-push-0.4.1.tgz
+pnpm run pack                           # -> dist/dsh-notify-push-0.4.3.tgz
 ```
 
 桌面版 profile 归 Electron 应用所有，所以 `dsh plugin add` 会拒绝它：请在
@@ -359,6 +372,74 @@ docker exec -it ntfy ntfy token add <user>
 - 同一时刻只有一个 provider。如果需要扇出，请使用 `webhook` provider。
 - 投递日志在内存里，host 重启即重置。
 - 被抑制的事件会被计数并记入日志，但它们本身不会触发通知。
+
+## 验证
+
+实际检查过什么、怎么检查的：
+
+- `pnpm check` —— 两半都通过 typecheck，bundle 构建成功，**111 个测试通过**。
+- 测试是行为性的，不是形状断言：引擎用注入的时钟驱动，以证明限速与去重；
+  路由由真实的回环 socket 伺服；还有一个回归测试把 ntfy 的发布地址钉在服务器
+  根上（把 JSON POST 到 `{server}/{topic}` 会被 HTTP 200 接受，然后原样出现在
+  锁屏上）。
+- 构建出的 `lib/index.js` 被挂在一个假的 cordis context 上，针对一个真实的
+  ntfy 服务器走完一次 `running → idle` 转换；通知从该 topic 读回并做了比对。
+  这演练的是宿主这一半的端到端行为，而不是 mock。
+- `test/status.spec.ts` 挂载真实的 `apply()` 并驱动真实的 status 处理函数，把
+  `subscribe` 的取值钉住：topic 被完整报出，同时断言被掩码的 `target` 不含它。
+  它还断言报出的版本等于 manifest 的版本，以及 `packageVersion()` 确实从安装
+  位置解析，而不是回退到 `unknown`。
+- 保存在**构建产物**上验证过，不只是源码：发布的 `lib/index.js` 被挂在一个会
+  把 patch 写入实时 config 的设置服务上——这正是加载器对 `volatile` 字段做的事
+  ——往返过程是 `configured: false` → `POST /config`（200，命名空间
+  `dsh-notify-push`）→ `configured: true`，随后的读取已经反映新值，中间没有重新
+  挂载。未知 key 返回 `400`，且没有碰到 config。
+- 提问触发的验证同样跑在**构建产物**上，因为委派义务正是那种 bundle 会悄悄
+  破坏的东西：发布的 `lib/index.js` 注册了 `user-questions/request`，跑过真实的
+  应答者，原样透传它的答案对象，并投递了一条 `Question asked` 载荷，其正文恰好
+  是 `Choose Mode — Which deployment?\nBlue · Green`。一次运行同时覆盖契约的两半：
+  发出通知，并且仍然让答案通过。
+- **顺序**要求由一个已知会在缺少修复时失败的测试覆盖，而且这是验证过的、不是
+  假定：去掉 `prepend` 后测试降到 104 通过、两个失败，其中一个是认领者测试在
+  一个永远不到来的请求上超时——正是生产上的症状。那些只断言「注册了监听器」的
+  断言一直是通过的，而这正是要点：它们根本抓不到。
+- `test/fields.spec.ts` 覆盖信任边界：未知 key、错误的原始类型、超范围的数字、
+  不在枚举里的值、过长的字符串和非对象 patch 全部被拒绝，并且断言描述符永远
+  不会携带已存储的 secret。
+- `settings.section` 注册是**对照真实的 slot 契约做类型检查**的，不是凭猜测：
+  `@deepseek-ai/dsh-client-ui-settings` 携带规范的 `SlotMap` 增补，所以 slot id
+  写错、缺 `id`、或者传入 slot 不接受的可选项，都会让 `pnpm typecheck` 失败，
+  而不是在运行时悄悄什么都没注册。
+- 构建产物还针对界面本身检查过：它注册 `settings.section`，并且**完全不含**
+  `sidebar.panellist` 或 `main` 的引用，也没有任何中间列页面几何
+  （`height:100%`、`max-width:960px`、`margin:0 auto`、darwin 边框留白）残留
+  ——这些都会和设置外壳已经提供的部分重复。
+- 区块能渲染出来——正是它的实机运行暴露了缺失的 topic、缺失的版本标签、缺失的
+  配置表单，以及含糊的 **Show** 开关——但作者没有在 GUI 里检视过它的外观，也
+  没有把两种主题与某个随包发布的页面对照过。迁进 Settings 是这里视觉上验证最
+  少的一处改动：几何是从外壳自身的容器规则推出来的，不是看出来的。
+- **组件行为没有测试。** 没有 React 渲染测试，所以表单的交互——眼睛按钮、待提交
+  草稿的记录、无改动保护——只靠 typecheck 和构建产物覆盖。它背后的接线（校验、
+  写入、回读）在路由与模块层面有测试，而那里才是失败真正要付代价的地方。
+
+## 目录结构
+
+| 路径 | 作用 |
+|---|---|
+| `src/index.ts` | 宿主这一半：config、事件接线、路由 API |
+| `src/config.ts` | 本行的 schemastery schema 与 volatile 字段读取 |
+| `src/settings.ts` | config 的一份扁平纯值快照 |
+| `src/format.ts` | 标题/正文的拼装与时长格式化 |
+| `src/providers.ts` | 请求构造、校验与 secret 掩码 |
+| `src/engine.ts` | 限速、去重、超时、投递日志 |
+| `src/routes.ts` | `/api/dsh-notify-push` 路由族及其围栏 |
+| `src/fields.ts` | 可编辑字段规格、表单描述符与 patch 校验 |
+| `src/version.ts` | 从自身 manifest 读出当前加载构建的版本 |
+| `src/protocol.ts` | 两半共同 import 的线上契约，含宿主路径与文档相对路径 |
+| `src/client/index.tsx` | 浏览器这一半：locale 字典与 `settings.section` 注册 |
+| `src/client/SettingsSection.tsx` | 区块主体 |
+| `src/client/ConfigForm.tsx` | 按宿主描述符渲染的可编辑配置表单 |
+| `cordis.patch.yml` | 把该条目插入 profile roster 的 bundle patch |
 
 ## 许可证
 

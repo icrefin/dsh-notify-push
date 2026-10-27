@@ -22,6 +22,39 @@ export const API = {
 } as const
 
 /**
+ * Re-express a host route as the browser half must request it.
+ *
+ * A route beginning with `/` is origin-absolute, which is correct only while
+ * the client is served at the origin root. The client can also be mounted under
+ * a path prefix — `dsh-remote-control` serves it at `/s/<sessionId>/` — and an
+ * absolute request then escapes that mount. The prefix's own host answers for
+ * `/api/...` instead: for the relay that is its pairing page, a `200 text/html`
+ * body, which `response.json()` reports as `Unexpected token '<'`.
+ *
+ * Dropping the leading slash makes the request resolve against
+ * `document.baseURI`, which is how the harness's own channels address the host.
+ *
+ * @param route - a host route path from {@link API}.
+ * @returns the same route, relative to the document.
+ */
+export function clientPath(route: string): string {
+  return route.replace(/^\//, '')
+}
+
+/**
+ * The {@link API} routes as the browser half requests them.
+ *
+ * Derived rather than re-typed, so the two halves cannot drift: change a route
+ * in {@link API} and this follows.
+ */
+export const CLIENT_API = {
+  status: clientPath(API.status),
+  history: clientPath(API.history),
+  test: clientPath(API.test),
+  config: clientPath(API.config),
+} as const
+
+/**
  * How the panel should render one editable config field.
  *
  * Sent by the host so the form follows the schema instead of duplicating it.

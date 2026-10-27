@@ -19,7 +19,7 @@
  */
 
 import { useCallback, useState, type ReactElement } from 'react'
-import { API, type ConfigField, type StatusPayload } from '../protocol.ts'
+import { CLIENT_API, type ConfigField, type StatusPayload } from '../protocol.ts'
 import { fieldLabelKey, type PanelTranslate } from './locales.ts'
 import { PANEL_ID } from './plugin.ts'
 
@@ -137,7 +137,7 @@ export function ConfigForm({ fields, canEdit, provider, t, onSaved }: ConfigForm
 
     setSaving(true)
     try {
-      const response = await fetch(API.config, {
+      const response = await fetch(CLIENT_API.config, {
         method: 'POST',
         headers: { accept: 'application/json', 'content-type': 'application/json' },
         body: JSON.stringify({ patch }),

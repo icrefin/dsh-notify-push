@@ -3,13 +3,13 @@ Push DeepSeek Harness agent notifications to your phone and watch via ntfy, Bark
 **English** | [简体中文](README.zh-CN.md)
 
 [![License](https://img.shields.io/github/license/icrefin/dsh-notify-push?style=flat-square)](LICENSE)
-[![Release](https://img.shields.io/github/v/release/icrefin/dsh-notify-push?style=flat-square)](https://github.com/icrefin/dsh-notify-push/releases/tag/v0.4.1)
+[![Release](https://img.shields.io/github/v/release/icrefin/dsh-notify-push?style=flat-square)](https://github.com/icrefin/dsh-notify-push/releases/tag/v0.4.3)
 [![CI](https://img.shields.io/github/actions/workflow/status/icrefin/dsh-notify-push/ci.yml?branch=main&style=flat-square)](https://github.com/icrefin/dsh-notify-push/actions/workflows/ci.yml)
 [![Last commit](https://img.shields.io/github/last-commit/icrefin/dsh-notify-push?style=flat-square)](https://github.com/icrefin/dsh-notify-push/commits/main)
 [![Stars](https://img.shields.io/github/stars/icrefin/dsh-notify-push?style=flat-square)](https://github.com/icrefin/dsh-notify-push/stargazers)
 [![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen?style=flat-square)](https://github.com/icrefin/dsh-notify-push/pulls)
 [![Node](https://img.shields.io/badge/node-%3E%3D22.17-339933?style=flat-square&logo=node.js)](https://nodejs.org)
-[![dsh](https://img.shields.io/badge/dsh-0.2.0--rc.2-4B5563?style=flat-square)](https://github.com/deepseek-ai/deepseek-harness)
+[![dsh](https://img.shields.io/badge/dsh-0.2.1--rc.3-4B5563?style=flat-square)](https://github.com/deepseek-ai/deepseek-harness)
 
 A [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) (dsh)
 plugin. It pushes a short notification to your **phone** — and, through the
@@ -21,7 +21,7 @@ network to a push service you choose, so it arrives while the Harness tab is
 closed and the laptop lid is shut.
 
 ```
-Settings ▸ Notify Push                          v0.4.1
+Settings ▸ Notify Push       v0.4.3 Author: icrefin [icrefinai@gmail.com]
 └── delivery state, an editable configuration form,
     the exact server and topic to subscribe to, armed triggers,
     a live preview, the delivery log,
@@ -39,7 +39,9 @@ The version beside the title is read from the manifest **at runtime**, not baked
 in at build time, so it names the build the harness actually loaded. That matters
 because installing a new package does not re-compose a running profile: a swap on
 disk leaves the old code live until a restart, and the chip is the fastest way to
-tell those two situations apart.
+tell those two situations apart. The author credit the repo style contract
+requires — `Author: icrefin [icrefinai@gmail.com]` — rides in the same chip, to
+the right of the version.
 
 ## What a notification says
 
@@ -113,12 +115,26 @@ route additionally validates its patch against the field specs before anything i
 written — a rejected key never reaches the settings document, which outlives the
 process and would otherwise be reapplied on every boot.
 
+### How the browser half addresses these routes
+
+The routes above are host paths and stay absolute; the browser half asks for
+them **relative to the document** (`CLIENT_API`, derived from `API` by
+`clientPath()` in `src/protocol.ts`). That is not a style choice. The web client
+can be mounted under a path prefix — `dsh-remote-control` serves the real client
+at `/s/<sessionId>/` — and a request beginning with `/` resolves against the
+origin, escaping that prefix. The prefix's own host then answers for `/api/…`:
+through the relay that is its pairing page, a `200 text/html` body, which
+`response.json()` reports as `Unexpected token '<'`. A document-relative path
+resolves against `document.baseURI` and stays inside whatever prefix the page is
+served from, which is how the harness's own channels address the host.
+`test/protocol.spec.ts` resolves both forms against a mounted base to pin it.
+
 ## Install
 
 ```sh
 pnpm install
 pnpm check                              # typecheck both halves, build, then vitest
-pnpm run pack                           # -> dist/dsh-notify-push-0.4.1.tgz
+pnpm run pack                           # -> dist/dsh-notify-push-0.4.3.tgz
 ```
 
 The desktop profile is owned by the Electron application, so `dsh plugin add`
@@ -386,6 +402,90 @@ the tunnel lets you *act* on it.
 - One provider at a time. Use the `webhook` provider if you need to fan out.
 - The delivery log is in memory and resets when the host restarts.
 - Suppressed events are counted and logged, but are not themselves notified.
+
+## Verification
+
+What has actually been checked, and how:
+
+- `pnpm check` — both halves typecheck, the bundle builds, **111 tests pass**.
+- The tests are behavioural, not shape assertions: the engine is driven with an
+  injected clock to prove pacing and de-duplication, the routes are served from
+  a real loopback socket, and a regression test pins the ntfy publish URL to the
+  server root (posting JSON to `{server}/{topic}` is accepted with HTTP 200 and
+  puts the raw JSON on the lock screen).
+- The built `lib/index.js` was mounted on a fake cordis context and driven
+  through a real `running → idle` transition against a live ntfy server; the
+  notification was read back off the topic and matched. That exercises the host
+  half end to end, not a mock.
+- `test/status.spec.ts` mounts the real `apply()` and drives the real status
+  handler to pin the `subscribe` decision: the topic is reported in full, and
+  the masked `target` is asserted not to contain it. It also asserts the reported
+  version equals the manifest's, and that `packageVersion()` genuinely resolves
+  from the installed location rather than falling back to `unknown`.
+- Saving was checked against the **built** artifact, not just the source: the
+  shipped `lib/index.js` was mounted with a settings service that assigns a patch
+  into the live config — which is what the loader does to a `volatile` field —
+  and the round trip went `configured: false` → `POST /config` (200, namespace
+  `dsh-notify-push`) → `configured: true` with a later read already reflecting the
+  value, no re-mount in between. An unknown key came back `400` without touching
+  the config.
+- The question trigger was checked against the **built** artifact too, because
+  the delegation obligation is the kind of thing a bundle could break silently:
+  the shipped `lib/index.js` registered `user-questions/request`, ran the real
+  answerer, propagated its answer object unchanged, and delivered a
+  `Question asked` payload whose body was exactly
+  `Choose Mode — Which deployment?\nBlue · Green`. Both halves of the contract in
+  one run: notify, and still let the answer through.
+- The **ordering** requirement is covered by a test known to fail without the
+  fix, and that was checked rather than assumed: removing the `prepend` drops the
+  suite to 104 passing with two failures, one of them the claimer test timing out
+  on a request that never arrived — the production symptom exactly. The
+  registration-only assertions kept passing, which is the point: they could not
+  have caught this.
+- `test/fields.spec.ts` covers the trust boundary: unknown keys, wrong primitive
+  types, out-of-range numbers, unlisted select values, over-long strings and
+  non-object patches are all refused, and the descriptors are asserted never to
+  carry a stored secret.
+- The `settings.section` registration is **type-checked against the real slot
+  contract**, not against a guess: `@deepseek-ai/dsh-client-ui-settings` ships the
+  canonical `SlotMap` augmentation, so a wrong slot id, a missing `id`, or an
+  option the slot does not accept fails `pnpm typecheck` rather than silently
+  registering nothing at runtime.
+- The built bundle was inspected for the surface itself: it registers
+  `settings.section` and contains **zero** references to `sidebar.panellist` or
+  `main`, and none of the centre-column page geometry (`height:100%`,
+  `max-width:960px`, `margin:0 auto`, the darwin frame clearance) survives — all
+  of which would have doubled what the settings shell already provides.
+- The section renders — its live runs are what surfaced the missing topic, the
+  missing version chip, the missing configuration form and the ambiguous **Show**
+  toggle — but its appearance has not been inspected in the GUI by the author,
+  and neither theme has been compared side by side with a shipped page. The move
+  into Settings is the least visually verified change here: the geometry was
+  reasoned from the shell's own container rule, not seen.
+- **Component behaviour is not tested.** There is no React rendering test, so the
+  form's interaction — the eye buttons, the pending-draft bookkeeping, the
+  no-change guard — is covered by typecheck and the built bundle only. The wiring
+  behind it (validation, the write, the read-back) is tested at the route and
+  module level, which is where the failures would actually cost something.
+
+## Layout
+
+| Path | Role |
+|---|---|
+| `src/index.ts` | host half: config, event wiring, route API |
+| `src/config.ts` | the row's schemastery schema and the volatile-field readers |
+| `src/settings.ts` | one flat plain-valued snapshot of the config |
+| `src/format.ts` | title/body composition and duration formatting |
+| `src/providers.ts` | request building, validation and secret masking |
+| `src/engine.ts` | pacing, de-duplication, timeouts, delivery log |
+| `src/routes.ts` | the `/api/dsh-notify-push` route family and its fences |
+| `src/fields.ts` | the editable field specs, the form descriptors and patch validation |
+| `src/version.ts` | reads the loaded build's version out of its own manifest |
+| `src/protocol.ts` | the wire contract both halves import, incl. the host paths and the document-relative client ones |
+| `src/client/index.tsx` | browser half: locale dictionaries and the `settings.section` registration |
+| `src/client/SettingsSection.tsx` | the section body |
+| `src/client/ConfigForm.tsx` | the editable configuration form, rendered from the host's descriptors |
+| `cordis.patch.yml` | the bundle patch that inserts the entry into a profile's roster |
 
 ## License
 

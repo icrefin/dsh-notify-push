@@ -20,7 +20,7 @@
 
 import { useCallback, useEffect, useState, type ReactElement } from 'react'
 import {
-  API,
+  CLIENT_API,
   type HistoryEntry,
   type HistoryPayload,
   type StatusPayload,
@@ -35,6 +35,12 @@ export interface SettingsSectionProps {
   /** Translate seat bound to this plugin's dictionary. */
   t: PanelTranslate
 }
+
+/**
+ * The author credit the style contract prints inside the version chip, to the
+ * right of the version itself (`STYLES.md`: `"v" + version + " Author: …"`).
+ */
+const AUTHOR_CREDIT = 'Author: icrefin [icrefinai@gmail.com]'
 
 /** Human-readable form of an unknown thrown value. */
 function messageOf(error: unknown): string {
@@ -136,8 +142,8 @@ export function SettingsSection({ t }: SettingsSectionProps): ReactElement {
     setError(undefined)
     try {
       const [nextStatus, history] = await Promise.all([
-        getJson<StatusPayload>(API.status),
-        getJson<HistoryPayload>(API.history),
+        getJson<StatusPayload>(CLIENT_API.status),
+        getJson<HistoryPayload>(CLIENT_API.history),
       ])
       setStatus(nextStatus)
       setEntries(history.entries)
@@ -156,7 +162,7 @@ export function SettingsSection({ t }: SettingsSectionProps): ReactElement {
     setSending(true)
     setNote(undefined)
     try {
-      const result = await postJson<TestPayload>(API.test)
+      const result = await postJson<TestPayload>(CLIENT_API.test)
       const outcome = result.entry.outcome
       setNote(
         outcome === 'sent'
@@ -176,7 +182,7 @@ export function SettingsSection({ t }: SettingsSectionProps): ReactElement {
       <header>
         <h1>
           {t('title')}
-          {status === undefined ? null : <span className="version">v{status.version}</span>}
+          {status === undefined ? null : <span className="version">{`v${status.version} ${AUTHOR_CREDIT}`}</span>}
         </h1>
         <p className="intro">{t('intro')}</p>
         <div className="actions">
