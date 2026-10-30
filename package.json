@@ -1,6 +1,6 @@
 {
   "name": "dsh-notify-push",
-  "version": "0.4.3",
+  "version": "0.4.4",
   "description": "Push DeepSeek Harness notifications to your phone and watch through ntfy, Bark, Gotify or Telegram.",
   "homepage": "https://github.com/icrefin/dsh-notify-push#readme",
   "repository": {
@@ -27,7 +27,7 @@
   "type": "module",
   "engines": {
     "node": ">=22.17.0",
-    "dsh": "0.2.1-rc.3"
+    "dsh": ">=0.2.1-rc.5 <0.2.2-0"
   },
   "main": "lib/index.js",
   "types": "lib/types/index.d.ts",
@@ -69,20 +69,20 @@
   },
   "peerDependencies": {
     "@deepseek-ai/cordis": "^4.0.5",
-    "@deepseek-ai/dsh-client-locale": "0.2.1-rc.3",
-    "@deepseek-ai/dsh-client-ui-settings": "0.2.1-rc.3",
-    "@deepseek-ai/dsh-client-ui-settings-general": "0.2.1-rc.3",
-    "@deepseek-ai/dsh-host-webserver": "0.2.1-rc.3",
+    "@deepseek-ai/dsh-client-locale": "0.2.1-rc.5",
+    "@deepseek-ai/dsh-client-ui-settings": "0.2.1-rc.5",
+    "@deepseek-ai/dsh-client-ui-settings-general": "0.2.1-rc.5",
+    "@deepseek-ai/dsh-host-webserver": "0.2.1-rc.5",
     "@deepseek-ai/schemastery": "^3.18.5",
     "react": "^18.2.0"
   },
   "devDependencies": {
     "@deepseek-ai/cordis": "^4.0.5",
-    "@deepseek-ai/dsh-client-locale": "0.2.1-rc.3",
-    "@deepseek-ai/dsh-client-ui-settings": "0.2.1-rc.3",
-    "@deepseek-ai/dsh-client-ui-settings-general": "0.2.1-rc.3",
-    "@deepseek-ai/dsh-client-ui-slots": "0.2.1-rc.3",
-    "@deepseek-ai/dsh-host-webserver": "0.2.1-rc.3",
+    "@deepseek-ai/dsh-client-locale": "0.2.1-rc.5",
+    "@deepseek-ai/dsh-client-ui-settings": "0.2.1-rc.5",
+    "@deepseek-ai/dsh-client-ui-settings-general": "0.2.1-rc.5",
+    "@deepseek-ai/dsh-client-ui-slots": "0.2.1-rc.5",
+    "@deepseek-ai/dsh-host-webserver": "0.2.1-rc.5",
     "@deepseek-ai/schemastery": "^3.18.5",
     "@types/node": "^22.20.0",
     "@types/react": "~18.3.1",
@@ -95,5 +95,5 @@
     "unrun": "^0.3.1",
     "vitest": "^3.0.0"
   },
-  "packageManager": "pnpm@11.8.0"
+  "packageManager": "pnpm@11.20.0"
 }

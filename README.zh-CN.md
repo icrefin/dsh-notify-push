@@ -3,13 +3,13 @@
 [English](README.md) | **简体中文**
 
 [![License](https://img.shields.io/github/license/icrefin/dsh-notify-push?style=flat-square)](LICENSE)
-[![Release](https://img.shields.io/github/v/release/icrefin/dsh-notify-push?style=flat-square)](https://github.com/icrefin/dsh-notify-push/releases/tag/v0.4.3)
+[![Release](https://img.shields.io/github/v/release/icrefin/dsh-notify-push?style=flat-square)](https://github.com/icrefin/dsh-notify-push/releases/tag/v0.4.4)
 [![CI](https://img.shields.io/github/actions/workflow/status/icrefin/dsh-notify-push/ci.yml?branch=main&style=flat-square)](https://github.com/icrefin/dsh-notify-push/actions/workflows/ci.yml)
 [![Last commit](https://img.shields.io/github/last-commit/icrefin/dsh-notify-push?style=flat-square)](https://github.com/icrefin/dsh-notify-push/commits/main)
 [![Stars](https://img.shields.io/github/stars/icrefin/dsh-notify-push?style=flat-square)](https://github.com/icrefin/dsh-notify-push/stargazers)
 [![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen?style=flat-square)](https://github.com/icrefin/dsh-notify-push/pulls)
 [![Node](https://img.shields.io/badge/node-%3E%3D22.17-339933?style=flat-square&logo=node.js)](https://nodejs.org)
-[![dsh](https://img.shields.io/badge/dsh-0.2.1--rc.3-4B5563?style=flat-square)](https://github.com/deepseek-ai/deepseek-harness)
+[![dsh](https://img.shields.io/badge/dsh-0.2.1--rc.5-4B5563?style=flat-square)](https://github.com/deepseek-ai/deepseek-harness)
 
 这是一个 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness)（dsh）
 插件。每当 agent 结束一轮对话、报错，或者正在等你审批时，它都会把一条
@@ -19,7 +19,7 @@
 因此即使 Harness 标签页已经关闭、笔记本已经合盖，它依然能送到。
 
 ```
-Settings ▸ Notify Push       v0.4.3 Author: icrefin [icrefinai@gmail.com]
+Settings ▸ Notify Push       v0.4.4 Author: icrefin [icrefinai@gmail.com]
 └── 投递状态、可编辑的配置表单、
     需要订阅的服务器和 topic（原样给出）、
     已启用的触发条件、实时预览、投递日志，
