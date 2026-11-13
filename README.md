@@ -112,7 +112,7 @@ served from, which is how the harness's own channels address the host.
 ```sh
 pnpm install
 pnpm check                              # typecheck both halves, build, then vitest
-pnpm run pack                           # -> dist/dsh-notify-push-0.4.5.tgz
+pnpm run pack                           # -> dist/dsh-notify-push-0.4.6.tgz
 ```
 
 The desktop profile is owned by the Electron application, so `dsh plugin add`
